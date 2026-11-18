@@ -1,5 +1,7 @@
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+// In local development Vite proxies /api to the backend, keeping browser
+// requests same-origin and avoiding CORS-related sign-in failures.
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 // User Roles
 export const ROLES = {
