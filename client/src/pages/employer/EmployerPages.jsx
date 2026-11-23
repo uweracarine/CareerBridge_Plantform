@@ -5,6 +5,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.jsx';
 import { EMPLOYER_NAV } from '../../constants/nav.js';
 import { EmptyState, PageLoader, Badge } from '../../components/ui.jsx';
 import { employerService, opportunityService, applicationService, messageService } from '../../services/api.js';
+import { useToast } from '../../context/NotificationContext.jsx';
 
 const ORGANIZATION_TYPES = [
   'private',
@@ -287,9 +288,11 @@ export function EmployerOpportunitiesPage() {
 
 export function EmployerOpportunityCreatePage() {
   const navigate = useNavigate();
+  const { success, error } = useToast();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
   const [form, setForm] = useState({
     title: '',
     categoryId: '',
@@ -313,27 +316,43 @@ export function EmployerOpportunityCreatePage() {
         setCategories(items);
         if (items[0]) setForm((prev) => ({ ...prev, categoryId: items[0].id }));
       })
-      .catch(() => setCategories([]))
+      .catch((err) => setFormError(err.response?.data?.message || 'Could not load opportunity categories.'))
       .finally(() => setLoading(false));
   }, []);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    if (formError) setFormError('');
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setSubmitting(true);
+    setFormError('');
 
+    if (!form.categoryId && !categories.length) {
+      setFormError('Please add a category before publishing an opportunity.');
+      return;
+    }
+    if (form.salaryMin !== '' && form.salaryMax !== '' && Number(form.salaryMax) < Number(form.salaryMin)) {
+      setFormError('Maximum salary must be greater than or equal to minimum salary.');
+      return;
+    }
+
+    setSubmitting(true);
     try {
       await opportunityService.createOpportunity({
         ...form,
         categoryId: form.categoryId || categories[0]?.id,
-        salaryMin: form.salaryMin ? Number(form.salaryMin) : null,
-        salaryMax: form.salaryMax ? Number(form.salaryMax) : null,
+        salaryMin: form.salaryMin === '' ? null : Number(form.salaryMin),
+        salaryMax: form.salaryMax === '' ? null : Number(form.salaryMax),
       });
+      success('Opportunity submitted and published successfully');
       navigate('/employer/opportunities');
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || 'Opportunity could not be submitted.';
+      setFormError(message);
+      error(message);
     } finally {
       setSubmitting(false);
     }
@@ -345,6 +364,7 @@ export function EmployerOpportunityCreatePage() {
     <DashboardLayout navItems={EMPLOYER_NAV} title="Post Opportunity">
       <SectionCard title="Create a new opportunity" subtitle="Publish an opening for candidates and graduates" action={<Link to="/employer/opportunities" className="btn-secondary text-sm py-2 px-4">Back</Link>}>
         <form onSubmit={handleSubmit} className="space-y-5">
+          {formError && <div className="rounded-lg border border-error/30 bg-error/5 px-4 py-3 text-sm text-error">{formError}</div>}
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="form-label">Opportunity title</label>
@@ -415,12 +435,12 @@ export function EmployerOpportunityCreatePage() {
             </div>
             <div>
               <label className="form-label">Application deadline</label>
-              <input type="date" name="applicationDeadline" value={form.applicationDeadline} onChange={handleChange} className="input-field" required />
+              <input type="date" name="applicationDeadline" value={form.applicationDeadline} onChange={handleChange} className="input-field" min={new Date().toISOString().slice(0, 10)} required />
             </div>
           </div>
 
           <div className="flex gap-3">
-            <button type="submit" className="btn-primary" disabled={submitting}>{submitting ? 'Submitting...' : 'Submit opportunity'}</button>
+            <button type="submit" className="btn-primary" disabled={submitting || !categories.length}>{submitting ? 'Submitting...' : 'Submit opportunity'}</button>
             <button type="button" onClick={() => navigate('/employer/opportunities')} className="btn-secondary">Cancel</button>
           </div>
         </form>

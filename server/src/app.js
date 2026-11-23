@@ -18,6 +18,7 @@ import notificationRoutes from './routes/notification.js';
 import messageRoutes from './routes/message.js';
 import savedRoutes from './routes/saved.js';
 import adminRoutes from './routes/admin.js';
+import featuresRoutes from './routes/features.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -42,6 +43,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/saved-opportunities', savedRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/features', featuresRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -170,16 +170,17 @@ export const adminService = {
   getDashboard: () => api.get('/admin/dashboard'),
   getUsers: (params) => api.get('/admin/users', { params }),
   getUser: (id) => api.get(`/admin/users/${id}`),
-  updateUserStatus: (id, status) => api.patch(`/admin/users/${id}/status`, { account_status: status }),
+  updateUserStatus: (id, status) => api.patch(`/admin/users/${id}/status`, { accountStatus: status }),
   suspendUser: (id, reason) => api.post(`/admin/users/${id}/suspend`, { reason }),
   
   getEmployers: (params) => api.get('/admin/employers', { params }),
   getEmployer: (id) => api.get(`/admin/employers/${id}`),
-  verifyEmployer: (id, status) => api.patch(`/admin/employers/${id}/verify`, { verification_status: status }),
+  verifyEmployer: (id, status) => api.patch(`/admin/employers/${id}/verify`, { verificationStatus: status }),
   
   getOpportunities: (params) => api.get('/admin/opportunities', { params }),
-  approveOpportunity: (id) => api.patch(`/admin/opportunities/${id}/approve`),
-  rejectOpportunity: (id, reason) => api.patch(`/admin/opportunities/${id}/reject`, { reason }),
+  approveOpportunity: (id) => api.patch(`/admin/opportunities/${id}/moderate`, { action: 'approve' }),
+  rejectOpportunity: (id, reason) => api.patch(`/admin/opportunities/${id}/moderate`, { action: 'reject', reason }),
+  moderateOpportunity: (id, action, reason) => api.patch(`/admin/opportunities/${id}/moderate`, { action, reason }),
   
   getApplications: (params) => api.get('/admin/applications', { params }),
   
@@ -191,6 +192,7 @@ export const adminService = {
   createCategory: (data) => api.post('/admin/categories', data),
   updateCategory: (id, data) => api.put(`/admin/categories/${id}`, data),
   deleteCategory: (id) => api.delete(`/admin/categories/${id}`),
+  createAdmin: (data) => api.post('/admin/admins', data),
 };
 
 // Career Resources Endpoints
@@ -200,6 +202,20 @@ export const resourceService = {
   createResource: (data) => api.post('/resources', data),
   updateResource: (id, data) => api.put(`/resources/${id}`, data),
   deleteResource: (id) => api.delete(`/resources/${id}`),
+};
+
+// Career Feature Endpoints
+export const featureService = {
+  getAlerts: () => api.get('/features/alerts'),
+  createAlert: (data) => api.post('/features/alerts', data),
+  updateAlert: (id, data) => api.put(`/features/alerts/${id}`, data),
+  deleteAlert: (id) => api.delete(`/features/alerts/${id}`),
+  getRecommendations: () => api.get('/features/recommendations'),
+  getStudentInterviews: () => api.get('/features/interviews'),
+  getEmployerInterviews: () => api.get('/features/employer/interviews'),
+  scheduleInterview: (applicationId, data) => api.post(`/features/employer/applications/${applicationId}/interview`, data),
+  updateInterviewStatus: (id, status) => api.patch(`/features/employer/interviews/${id}/status`, { status }),
+  reportOpportunity: (id, data) => api.post(`/features/opportunities/${id}/report`, data),
 };
 
 export default api;

@@ -6,6 +6,7 @@ import { STUDENT_NAV } from '../../constants/nav.js';
 import { PageLoader, EmptyState, Badge } from '../../components/ui.jsx';
 import { studentService, savedOpportunitiesService, applicationService, opportunityService } from '../../services/api.js';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { useToast } from '../../context/NotificationContext.jsx';
 
 const DEFAULT_PROFILE = {
   fullName: 'Aline Uwimana',
@@ -99,6 +100,7 @@ export function StudentProfilePage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     let mounted = true;
@@ -153,11 +155,13 @@ export function StudentProfilePage() {
       setForm(next);
       updateUser({ ...user, fullName: form.fullName, phone: form.phone });
       setEditing(false);
+      toast.success('Profile updated successfully!');
     } catch (error) {
       const next = normalizeProfile({ ...profile, ...form }, user);
       setProfile(next);
       setForm(next);
       setEditing(false);
+      toast.error('Failed to update profile. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -822,6 +826,7 @@ export function StudentApplicationDetailPage() {
 export function StudentApplyPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { success, error } = useToast();
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [opportunity, setOpportunity] = useState(null);
@@ -840,7 +845,12 @@ export function StudentApplyPage() {
         setCvs(availableCVs);
         setCvId(availableCVs.find((cv) => cv.isDefault)?.id || availableCVs[0]?.id || '');
       })
-      .catch(() => { if (active) setFormError('We could not load this opportunity or your CVs. Please try again.'); })
+      .catch((err) => {
+        if (active) {
+          const message = err.response?.data?.message || 'We could not load this opportunity or your CVs. Please try again.';
+          setFormError(message);
+        }
+      })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [id]);
@@ -857,11 +867,14 @@ export function StudentApplyPage() {
     try {
       const response = await applicationService.submit({ opportunityId: id, cvId, coverLetter });
       const conversationId = response?.data?.conversationId;
+      success('Application submitted successfully');
       navigate(conversationId ? '/student/messages' : '/student/applications', {
         state: conversationId ? { conversationId } : undefined,
       });
-    } catch (error) {
-      setFormError(error.response?.data?.message || error.message || 'Your application could not be submitted.');
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || 'Your application could not be submitted.';
+      setFormError(message);
+      error(message);
     } finally {
       setSubmitting(false);
     }
@@ -878,7 +891,7 @@ export function StudentApplyPage() {
             <div>
               <label className="form-label">CV to submit</label>
               {cvs.length ? (
-                <select value={cvId} onChange={(event) => setCvId(event.target.value)} className="input-field" required>
+                <select value={cvId} onChange={(event) => { setCvId(event.target.value); setFormError(''); }} className="input-field" required>
                   {cvs.map((cv) => <option key={cv.id} value={cv.id}>{cv.fileName}{cv.isDefault ? ' (Default)' : ''}</option>)}
                 </select>
               ) : (

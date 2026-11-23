@@ -42,7 +42,19 @@ import {
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
+import AdminUsers from './pages/admin/AdminUsers.jsx';
+import {
+  AdminEmployers,
+  AdminOpportunities,
+  AdminCategories,
+  AdminAnalytics,
+  AdminActivityLogs,
+  AdminAccounts,
+} from './pages/admin/AdminPages.jsx';
 import NotificationsPage from './pages/shared/NotificationsPage.jsx';
+
+// Feature pages
+import { JobAlertsPage, StudentInterviewsPage, EmployerInterviewsPage, RecommendationsPage } from './pages/features/FeaturePages.jsx';
 
 const STUDENT_ROLES = ['student', 'graduate', 'job_seeker'];
 const EMPLOYER_ROLES = ['employer'];
@@ -203,6 +215,54 @@ function App() {
             <Route path="/admin/dashboard" element={
               <ProtectedRoute roles={ADMIN_ROLES}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute roles={ADMIN_ROLES}><AdminUsers /></ProtectedRoute>
+            } />
+            <Route path="/admin/employers" element={
+              <ProtectedRoute roles={ADMIN_ROLES}><AdminEmployers /></ProtectedRoute>
+            } />
+            <Route path="/admin/verification" element={
+              <ProtectedRoute roles={ADMIN_ROLES}><AdminEmployers verificationOnly /></ProtectedRoute>
+            } />
+            <Route path="/admin/opportunities" element={
+              <ProtectedRoute roles={ADMIN_ROLES}><AdminOpportunities /></ProtectedRoute>
+            } />
+            <Route path="/admin/categories" element={
+              <ProtectedRoute roles={ADMIN_ROLES}><AdminCategories /></ProtectedRoute>
+            } />
+            <Route path="/admin/analytics" element={
+              <ProtectedRoute roles={ADMIN_ROLES}><AdminAnalytics /></ProtectedRoute>
+            } />
+            <Route path="/admin/activity-logs" element={
+              <ProtectedRoute roles={ADMIN_ROLES}><AdminActivityLogs /></ProtectedRoute>
+            } />
+            <Route path="/admin/admins" element={
+              <ProtectedRoute roles={ADMIN_ROLES}><AdminAccounts /></ProtectedRoute>
+            } />
+
+            {/* Feature Pages - Student */}
+            <Route path="/student/job-alerts" element={
+              <ProtectedRoute roles={STUDENT_ROLES}>
+                <JobAlertsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/student/recommendations" element={
+              <ProtectedRoute roles={STUDENT_ROLES}>
+                <RecommendationsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/student/interviews" element={
+              <ProtectedRoute roles={STUDENT_ROLES}>
+                <StudentInterviewsPage />
+              </ProtectedRoute>
+            } />
+
+            {/* Feature Pages - Employer */}
+            <Route path="/employer/interviews" element={
+              <ProtectedRoute roles={EMPLOYER_ROLES}>
+                <EmployerInterviewsPage />
               </ProtectedRoute>
             } />
 
